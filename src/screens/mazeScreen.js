@@ -69,6 +69,21 @@ export function mount(container, ctx) {
         <div class="feedback-toast" id="maze-toast" hidden></div>
       </div>
 
+      <div class="result-overlay" id="maze-start-overlay">
+        <div class="result-card">
+          <span class="result-badge is-pass">How to Play</span>
+          <h2 class="result-title">Reach the Flag!</h2>
+          <p class="result-desc">
+            Hold your phone comfortably and tap <strong>Re-center</strong> first (or anytime) to calibrate tilt. Avoid the cacti and reach the green flag in 60s!
+          </p>
+          <div class="result-actions">
+            <button type="button" class="btn btn-primary btn-xl" id="maze-start-btn">
+              Start Maze
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="result-overlay" id="maze-result-overlay" hidden></div>
     </section>
   `
@@ -81,6 +96,8 @@ export function mount(container, ctx) {
   const arenaWrap = container.querySelector('#maze-arena-wrap')
   const canvas = container.querySelector('#maze-canvas')
   const toastEl = container.querySelector('#maze-toast')
+  const startOverlay = container.querySelector('#maze-start-overlay')
+  const startBtn = container.querySelector('#maze-start-btn')
   const resultOverlay = container.querySelector('#maze-result-overlay')
   const canvasCtx = canvas.getContext('2d')
 
@@ -435,6 +452,14 @@ export function mount(container, ctx) {
     tiltInput.setMode(next)
   }
 
+  const handleStartMaze = async () => {
+    await tiltInput.requestPermission()
+    tiltInput.calibrate()
+    startOverlay.hidden = true
+    loop.start()
+  }
+
+  startBtn.addEventListener('click', handleStartMaze)
   backBtn.addEventListener('click', handleBack)
   recenterBtn.addEventListener('click', handleRecenter)
   modeBtn.addEventListener('click', handleToggleMode)
@@ -449,7 +474,7 @@ export function mount(container, ctx) {
   updateTimerUI()
   resizeCanvas()
   rebuildGeometry(true)
-  loop.start()
+  drawScene(performance.now())
 
   return () => {
     isDestroyed = true
@@ -457,6 +482,7 @@ export function mount(container, ctx) {
     if (toastTimer !== null) window.clearTimeout(toastTimer)
     resizeObserver?.disconnect()
     window.removeEventListener('resize', resizeCanvas)
+    startBtn.removeEventListener('click', handleStartMaze)
     backBtn.removeEventListener('click', handleBack)
     recenterBtn.removeEventListener('click', handleRecenter)
     modeBtn.removeEventListener('click', handleToggleMode)

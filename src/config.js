@@ -34,7 +34,7 @@ export const CONFIG = {
     sensitivity: 28,
     maxTiltDeg: 30,
     friction: 0.94,
-    maxSpeed: 520,
+    maxSpeed: 400,
     wallBounce: 0.35,
     deadzoneDeg: 2.0,
   },

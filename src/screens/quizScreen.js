@@ -108,6 +108,21 @@ export function mount(container, ctx) {
         <div class="feedback-toast" id="quiz-feedback-toast" hidden></div>
       </div>
 
+      <div class="result-overlay" id="quiz-start-overlay">
+        <div class="result-card">
+          <span class="result-badge is-pass">How to Play</span>
+          <h2 class="result-title">Tilt to Answer</h2>
+          <p class="result-desc">
+            Hold your phone comfortably and tap <strong>Re-center</strong> first (or anytime) to calibrate tilt, then roll the ball into the right answer!
+          </p>
+          <div class="result-actions">
+            <button type="button" class="btn btn-primary btn-xl" id="quiz-start-btn">
+              Start Quiz
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="result-overlay" id="quiz-result-overlay" hidden></div>
     </section>
   `
@@ -122,6 +137,8 @@ export function mount(container, ctx) {
   const arenaWrap = container.querySelector('#quiz-arena-wrap')
   const canvas = container.querySelector('#quiz-canvas')
   const feedbackToast = container.querySelector('#quiz-feedback-toast')
+  const startOverlay = container.querySelector('#quiz-start-overlay')
+  const startBtn = container.querySelector('#quiz-start-btn')
   const resultOverlay = container.querySelector('#quiz-result-overlay')
   const canvasCtx = canvas.getContext('2d')
 
@@ -506,6 +523,14 @@ export function mount(container, ctx) {
     tiltInput.setMode(next)
   }
 
+  const handleStartQuiz = async () => {
+    await tiltInput.requestPermission()
+    tiltInput.calibrate()
+    startOverlay.hidden = true
+    loop.start()
+  }
+
+  startBtn.addEventListener('click', handleStartQuiz)
   backBtn.addEventListener('click', handleBack)
   recenterBtn.addEventListener('click', handleRecenter)
   modeBtn.addEventListener('click', handleToggleMode)
@@ -523,7 +548,7 @@ export function mount(container, ctx) {
   renderQuestionHeader()
   resizeCanvas()
   resetBallToCenter()
-  loop.start()
+  drawScene()
 
   return () => {
     isDestroyed = true
@@ -538,6 +563,7 @@ export function mount(container, ctx) {
     } else {
       window.removeEventListener('resize', resizeCanvas)
     }
+    startBtn.removeEventListener('click', handleStartQuiz)
     backBtn.removeEventListener('click', handleBack)
     recenterBtn.removeEventListener('click', handleRecenter)
     modeBtn.removeEventListener('click', handleToggleMode)

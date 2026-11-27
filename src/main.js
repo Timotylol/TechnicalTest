@@ -6,6 +6,8 @@ import { mount as mountLanding } from './screens/landingScreen.js'
 import { mount as mountMenu } from './screens/menuScreen.js'
 import { mount as mountQuiz } from './screens/quizScreen.js'
 import { mount as mountMaze } from './screens/mazeScreen.js'
+import { mount as mountFinal } from './screens/finalScreen.js'
+import { mount as mountAdmin } from './screens/adminScreen.js'
 
 const appEl = document.querySelector('#app')
 
@@ -39,14 +41,8 @@ const SCREENS = {
   menu: mountMenu,
   quiz: mountQuiz,
   minigame: mountMaze,
-  final: createPlaceholderScreen(
-    CONFIG.copy.finalWinTitle,
-    'Prize Claim ID screen is coming up next.'
-  ),
-  admin: createPlaceholderScreen(
-    'Admin Dashboard',
-    'Metrics and Claim ID verification are coming up next.'
-  ),
+  final: mountFinal,
+  admin: mountAdmin,
 }
 
 let activeCleanup = null
