@@ -1,0 +1,45 @@
+export const CONFIG = {
+  event: {
+    clientName: 'Harbour Point Community Club',
+    eventName: 'FunFest @ Downtown West',
+    appTitle: 'Play & Win',
+    claimPrefix: 'HPCC',
+  },
+  copy: {
+    landingTitle: 'Welcome to FunFest!',
+    landingSubtitle: 'Tap the entrance to step inside and play for a prize.',
+    startButton: 'Enter Club',
+    menuTitle: 'Choose Your Challenge',
+    menuSubtitle: 'Win both games to unlock your prize!',
+    quizButton: 'Fun-Fact Quiz',
+    miniGameButton: 'Tilt-Ball Maze',
+    finalWinTitle: 'Congratulations!',
+    finalWinBody: 'Show this Claim ID at the prize booth to collect your reward.',
+  },
+  quiz: {
+    questionCount: 5,
+    shuffleQuestions: true,
+    passMark: 0.8,
+    dwellMs: 650,
+    feedbackMs: 1100,
+  },
+  miniGame: {
+    timeLimitSec: 60,
+    maxScore: 100,
+    mazeId: 'classic-1',
+    holePenaltySec: 0,
+    respawnInvulnMs: 500,
+  },
+  physics: {
+    sensitivity: 28,
+    maxTiltDeg: 30,
+    friction: 0.94,
+    maxSpeed: 520,
+    wallBounce: 0.35,
+    deadzoneDeg: 2.0,
+  },
+  admin: {
+    pin: '1234',
+    refreshIntervalMs: 0,
+  },
+}
