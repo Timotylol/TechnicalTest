@@ -32,7 +32,7 @@ In the terminal running `npm.cmd start`:
 
 ---
 
-## 4. Tilt Controls vs. Drag / Tap (Important Note)
+## 4. Tilt Controls vs. Drag / Tap (Important Note) 
 Modern mobile browsers (**iOS Safari** and **Android Chrome**) **require HTTPS** (`https://`) to access `DeviceOrientationEvent` tilt sensors.
 
 - **Default HTTP (`http://<LAN-IP>:5173`):** Both the Quiz and MiniGame automatically fall back to **Drag / Tap** controls so everything works cleanly without browser certificate warnings.
