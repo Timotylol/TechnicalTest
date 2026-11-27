@@ -1,6 +1,6 @@
 import { CONFIG } from '../config.js'
 import { saveRecord } from '../api.js'
-import questionsData from '../data/questions.json'
+import { createQuizSystem } from '../engine/quizSystem.js'
 import { createTiltInput } from '../engine/tiltInput.js'
 import {
   stepBall,
@@ -8,23 +8,6 @@ import {
   isPointInCircle,
   createPhysicsLoop,
 } from '../engine/ballPhysics.js'
-
-function shuffleArray(items) {
-  const arr = [...items]
-  for (let i = arr.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[arr[i], arr[j]] = [arr[j], arr[i]]
-  }
-  return arr
-}
-
-function prepareQuestions() {
-  const pool = CONFIG.quiz.shuffleQuestions
-    ? shuffleArray(questionsData)
-    : [...questionsData]
-  const count = Math.min(CONFIG.quiz.questionCount, pool.length)
-  return pool.slice(0, count)
-}
 
 function loadImage(src) {
   const img = new Image()
@@ -78,10 +61,8 @@ export function mount(container, ctx) {
   const playerImg = loadImage('/assets/Player.png')
   const answerImg = loadImage('/assets/Answer.png')
 
-  let questions = prepareQuestions()
-  let currentIndex = 0
-  let score = 0
-  let isFinished = false
+  const quizSystem = createQuizSystem()
+  const initialProgress = quizSystem.getProgress()
 
   let feedbackState = null // { selectedIndex, correctIndex, isCorrect }
   let feedbackTimer = null
@@ -104,7 +85,7 @@ export function mount(container, ctx) {
           ← Back
         </button>
         <div class="hud-stats">
-          <span class="hud-pill" id="quiz-progress">Q 1 / ${questions.length}</span>
+          <span class="hud-pill" id="quiz-progress">Q 1 / ${initialProgress.total}</span>
           <span class="hud-pill hud-pill-score" id="quiz-score">Score: 0</span>
         </div>
         <div class="hud-controls">
@@ -165,7 +146,7 @@ export function mount(container, ctx) {
   updateModeUI(tiltInput.getMode())
 
   function rebuildZones() {
-    const q = questions[currentIndex]
+    const q = quizSystem.getCurrentQuestion()
     if (!q) return
     const zoneR = Math.max(38, Math.min(54, Math.min(arenaWidth, arenaHeight) * 0.145))
     const positions = computeZonePositions(q.options.length, arenaWidth, arenaHeight)
@@ -188,9 +169,10 @@ export function mount(container, ctx) {
   }
 
   function renderQuestionHeader() {
-    const q = questions[currentIndex]
-    progressEl.textContent = `Q ${currentIndex + 1} / ${questions.length}`
-    scoreEl.textContent = `Score: ${score}`
+    const q = quizSystem.getCurrentQuestion()
+    const prog = quizSystem.getProgress()
+    progressEl.textContent = `Q ${prog.current} / ${prog.total}`
+    scoreEl.textContent = `Score: ${prog.score}`
     questionTextEl.textContent = q ? q.question : ''
   }
 
@@ -340,12 +322,9 @@ export function mount(container, ctx) {
   }
 
   function finishQuiz() {
-    isFinished = true
     loop.stop()
 
-    const total = questions.length
-    const passThreshold = Math.ceil(total * CONFIG.quiz.passMark)
-    const passed = score >= passThreshold
+    const { score, total, passThreshold, passed } = quizSystem.getResult()
 
     saveRecord({
       type: 'game_result',
@@ -406,17 +385,18 @@ export function mount(container, ctx) {
   }
 
   function lockAnswer(selectedIndex) {
-    if (feedbackState || isFinished || isDestroyed) return
-    const q = questions[currentIndex]
-    const isCorrect = selectedIndex === q.answerIndex
+    if (feedbackState || quizSystem.isFinished() || isDestroyed) return
+    const outcome = quizSystem.submitAnswer(selectedIndex)
+    if (!outcome) return
+
+    const { correctIndex, isCorrect, score } = outcome
     if (isCorrect) {
-      score += 1
       scoreEl.textContent = `Score: ${score}`
     }
 
     feedbackState = {
       selectedIndex,
-      correctIndex: q.answerIndex,
+      correctIndex,
       isCorrect,
     }
 
@@ -428,8 +408,8 @@ export function mount(container, ctx) {
       if (isDestroyed) return
       feedbackState = null
       feedbackToast.hidden = true
-      currentIndex += 1
-      if (currentIndex >= questions.length) {
+      const done = quizSystem.advance()
+      if (done) {
         finishQuiz()
       } else {
         renderQuestionHeader()
@@ -444,10 +424,7 @@ export function mount(container, ctx) {
       window.clearTimeout(feedbackTimer)
       feedbackTimer = null
     }
-    questions = prepareQuestions()
-    currentIndex = 0
-    score = 0
-    isFinished = false
+    quizSystem.reset()
     feedbackState = null
     feedbackToast.hidden = true
     resultOverlay.hidden = true
@@ -459,7 +436,7 @@ export function mount(container, ctx) {
   }
 
   const loop = createPhysicsLoop((dt) => {
-    if (isFinished) return
+    if (quizSystem.isFinished()) return
 
     if (!feedbackState) {
       const vec = tiltInput.getVector()
@@ -497,7 +474,7 @@ export function mount(container, ctx) {
   }
 
   function handleCanvasPointerUp(e) {
-    if (!tapStart || tiltInput.getMode() !== 'drag' || feedbackState || isFinished) {
+    if (!tapStart || tiltInput.getMode() !== 'drag' || feedbackState || quizSystem.isFinished()) {
       tapStart = null
       return
     }

@@ -44,6 +44,59 @@ export function stepBall(ball, inputVec, bounds, physicsConfig = CONFIG.physics,
 }
 
 /**
+ * Resolves circle vs. AABB rectangle wall collisions by pushing the ball out
+ * along the shallowest axis and reflecting velocity by wallBounce.
+ */
+export function resolveWallCollisions(ball, walls, wallBounce = CONFIG.physics.wallBounce) {
+  for (let i = 0; i < walls.length; i += 1) {
+    const wall = walls[i]
+    const closestX = Math.max(wall.x, Math.min(ball.x, wall.x + wall.w))
+    const closestY = Math.max(wall.y, Math.min(ball.y, wall.y + wall.h))
+    const dx = ball.x - closestX
+    const dy = ball.y - closestY
+    const distSq = dx * dx + dy * dy
+
+    if (distSq >= ball.r * ball.r) continue
+
+    if (distSq > 0.0001) {
+      const dist = Math.sqrt(distSq)
+      const nx = dx / dist
+      const ny = dy / dist
+      const overlap = ball.r - dist
+      ball.x += nx * overlap
+      ball.y += ny * overlap
+
+      const vn = ball.vx * nx + ball.vy * ny
+      if (vn < 0) {
+        ball.vx -= (1 + wallBounce) * vn * nx
+        ball.vy -= (1 + wallBounce) * vn * ny
+      }
+    } else {
+      // Ball center is inside the wall rect; push out along minimum penetration axis
+      const leftPen = ball.x - wall.x
+      const rightPen = wall.x + wall.w - ball.x
+      const topPen = ball.y - wall.y
+      const bottomPen = wall.y + wall.h - ball.y
+      const minPen = Math.min(leftPen, rightPen, topPen, bottomPen)
+
+      if (minPen === leftPen) {
+        ball.x = wall.x - ball.r
+        ball.vx = -Math.abs(ball.vx) * wallBounce
+      } else if (minPen === rightPen) {
+        ball.x = wall.x + wall.w + ball.r
+        ball.vx = Math.abs(ball.vx) * wallBounce
+      } else if (minPen === topPen) {
+        ball.y = wall.y - ball.r
+        ball.vy = -Math.abs(ball.vy) * wallBounce
+      } else {
+        ball.y = wall.y + wall.h + ball.r
+        ball.vy = Math.abs(ball.vy) * wallBounce
+      }
+    }
+  }
+}
+
+/**
  * Returns true when the ball center is within the circular zone radius.
  */
 export function isBallInCircle(ball, zone) {

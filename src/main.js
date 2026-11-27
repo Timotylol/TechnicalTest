@@ -5,6 +5,7 @@ import { saveRecord } from './api.js'
 import { mount as mountLanding } from './screens/landingScreen.js'
 import { mount as mountMenu } from './screens/menuScreen.js'
 import { mount as mountQuiz } from './screens/quizScreen.js'
+import { mount as mountMaze } from './screens/mazeScreen.js'
 
 const appEl = document.querySelector('#app')
 
@@ -37,10 +38,7 @@ const SCREENS = {
   landing: mountLanding,
   menu: mountMenu,
   quiz: mountQuiz,
-  minigame: createPlaceholderScreen(
-    CONFIG.copy.miniGameButton,
-    'Tilt-Ball Maze module is coming up next.'
-  ),
+  minigame: mountMaze,
   final: createPlaceholderScreen(
     CONFIG.copy.finalWinTitle,
     'Prize Claim ID screen is coming up next.'

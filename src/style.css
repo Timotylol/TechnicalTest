@@ -685,3 +685,34 @@ body {
     opacity: 0.9;
   }
 }
+
+/* Maze MiniGame Screen */
+.maze-screen {
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.maze-banner {
+  width: 100%;
+  background: var(--surface-strong);
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.maze-arena-wrap {
+  min-height: 360px;
+}
+
+.hud-pill-timer {
+  background: #e9f5f3;
+  color: #1d3557;
+  min-width: 56px;
+  text-align: center;
+}
+
+.hud-pill-timer.is-urgent {
+  background: #ffe3e3;
+  color: #9b1c1c;
+}
