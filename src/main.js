@@ -4,6 +4,7 @@ import { getState, updateState, resetState } from './state.js'
 import { saveRecord } from './api.js'
 import { mount as mountLanding } from './screens/landingScreen.js'
 import { mount as mountMenu } from './screens/menuScreen.js'
+import { mount as mountQuiz } from './screens/quizScreen.js'
 
 const appEl = document.querySelector('#app')
 
@@ -35,10 +36,7 @@ function createPlaceholderScreen(title, description) {
 const SCREENS = {
   landing: mountLanding,
   menu: mountMenu,
-  quiz: createPlaceholderScreen(
-    CONFIG.copy.quizButton,
-    'Tilt-Ball Quiz module is coming up next.'
-  ),
+  quiz: mountQuiz,
   minigame: createPlaceholderScreen(
     CONFIG.copy.miniGameButton,
     'Tilt-Ball Maze module is coming up next.'
