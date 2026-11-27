@@ -88,13 +88,31 @@ You can use any framework or library, as long as `npm install` and `npm start` s
 
 ## Your notes
 
-Replace this section before you submit.
+See [howtorun.md](howtorun.md) for quick start, stop, and optional HTTPS tilt-sensor setup instructions.
 
 - **Where to change the settings:**
-- **How saving and loading works, and why I chose that format** (or why I left it out):
+  - `src/config.js` — Event branding/copy, quiz settings (`questionCount`, `shuffleQuestions`, `passMark`, `dwellMs`, `feedbackMs`), mini-game limits (`timeLimitSec`, `maxScore`, `mazeId`, `holePenaltySec`), physics tuning (`sensitivity`, `maxTiltDeg`, `friction`, `maxSpeed`, `wallBounce`, `deadzoneDeg`), and Admin PIN (`CONFIG.admin.pin`, default `1234`).
+  - `src/data/questions.json` — Multiple-choice quiz questions (`id`, `question`, `options`, `answerIndex`).
+  - `src/data/mazes.json` — Maze layout (`classic-1` start, goal, walls, and hazards in normalized `0..1` coordinates).
+- **How saving and loading works, and why I chose that format:**
+  - `server.js` stores all events and prize claims in a single local JSON file (`data/db.json`) using Node's `fs/promises`, serialized via an in-memory write queue (`enqueueWrite`) and atomic temp-file rename (`db.json.tmp` -> `db.json`) so concurrent phones on Wi-Fi don't corrupt data.
+  - `src/api.js` calls `/api/records`, `/api/claims`, and `/api/admin/summary` (plus `/api/admin/reset`). JSON was chosen over CSV so both event logs (`app_launch`, `game_picked`, `game_result`, `final_screen_view`) and mutable prize claims (`claimId`, `claimed`, `claimedAt`) live cleanly in one file.
 - **Assumptions I made:**
+  - Assumed both the Quiz (`>= 80%`) and the Maze MiniGame (reach the goal within 60s) need to be completed to claim the reward.
+  - Assumed the MiniGame should be enjoyable for both kids and elderly—and that elderly players might especially enjoy a tilt-maze game since it brings back nostalgia from classic wooden labyrinth toys.
+  - Sessions are tracked in `sessionStorage` (`sessionId`), so clearing browser cache or opening a new tab starts a new session.
 - **What I prioritised, and why:**
+  - Complete end-to-end mobile-first flow (Landing walk-in -> 2-button Menu -> Tilt/Drag Quiz & Maze -> Final Screen -> Admin Screen) with zero extra runtime frontend dependencies.
+  - Centralized config (`src/config.js`), shared physics/input engine (`src/engine/`), portrait-only lock, and live prize Claim ID verification in Admin.
 - **What I left out or didn't finish, and why:**
-- **Time planned vs. time spent:**
-- **How I used AI** (and one suggestion I changed or didn't use):
+  - A more complex maze design—kept a single base maze layout (`classic-1`) to focus on getting the base frame of the game working cleanly first.
+  - User login/authentication (ideally via a third-party provider like Google Sign-In for ease of use and privacy) for stricter anti-repeat enforcement across cache clears (noted as a future improvement; booth staff verify and mark claims in Admin instead).
+  - Default HTTPS in `vite.config.js` left disabled to avoid self-signed certificate warnings on `http://localhost:5173` (`@vitejs/plugin-basic-ssl` is in `devDependencies` if needed; over plain HTTP, mobile browsers block `DeviceOrientationEvent` so the app automatically falls back to Drag / Tap controls—see [howtorun.md](howtorun.md)).
+- **Time planned vs. time spent:** 10 hours planned vs. 6 hours spent.
+- **How I used AI (and one suggestion I changed or didn't use):**
+  - Used AI to draft the game plan and technical design, scaffold the Vanilla ES module screens, 2D ball physics, and Express JSON persistence, and wire custom sprite assets.
+  - Didn't use AI to generate ideas for me—I input my own ideas and used AI to help rephrase and organize them.
+  - **Changed / didn't use:** Kept `vite.config.js` on standard HTTP instead of AI-suggested `basicSsl()` by default to avoid certificate warnings during review; simplified the flow from Landing -> Game Select -> Game to Landing walk-in -> 2-button Menu; and rejected AI-generated images in favor of custom-made and copyright-free sprites in `public/assets/`.
 - **Anything I'm unsure about:**
+  - Whether the player will be going from station to station to do the quiz instead.
+  - Real-phone `DeviceOrientationEvent` tilt requires HTTPS (see [howtorun.md](howtorun.md)); over plain HTTP, Drag / Tap controls are used automatically.
